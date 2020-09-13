@@ -9,36 +9,88 @@ using System.Runtime.InteropServices;
 /*Разработать приложение, позволяющее определить размер диагонали монитора текущего компьютера в дюймах.*/
 namespace C_sharp_DZ_12
 {
-    public class DiagonalFromDll
-    {
-        //"C:/Windows/System32/wbem/cimwin32.dll"
-        [DllImport("cimwin32.dll")]
-        public static extern int ScreenHeight();
+
+    
 
 
-    }
+
+
+
+
+
 
     class Program
     {
+
+        [DllImport("user32.dll")]
+        static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr lprcClip, EnumMonitorsDelegate lpfnEnum, IntPtr dwData);
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Rect
+        {
+            public int left;
+            public int top;
+            public int right;
+            public int bottom;
+        }
+        delegate bool EnumMonitorsDelegate(IntPtr hMonitor, IntPtr hdcMonitor, ref Rect lprcMonitor, IntPtr dwData);
+
+        public MonitorInfo()
+        {
+            rcMonitor = new Rectangle2();
+            rcWork = new Rectangle2();
+
+            cbSize = (UInt32)System.Runtime.InteropServices.Marshal.SizeOf(typeof(MonitorInfo));
+            dwFlags = 0;
+        }
+
+        public class DisplayInfo
+        {
+            public string Availability { get; set; }
+            public string ScreenHeight { get; set; }
+            public string ScreenWidth { get; set; }
+            public Rect MonitorArea { get; set; }
+            public Rect WorkArea { get; set; }
+        }
+
+        
+        public class DisplayInfoCollection : List<DisplayInfo>
+        {
+        }
+
+        
+        public DisplayInfoCollection GetDisplays()
+        {
+            DisplayInfoCollection col = new DisplayInfoCollection();
+
+            EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, delegate (IntPtr hMonitor, IntPtr hdcMonitor, ref Rect lprcMonitor, IntPtr dwData)
+                {
+                    MonitorInfo mi = new MonitorInfo();
+                    mi.size = (uint)Marshal.SizeOf(mi);
+                    bool success = GetMonitorInfo(hMonitor, ref mi);
+                    if (success)
+                    {
+                        DisplayInfo di = new DisplayInfo();
+                        di.ScreenWidth = (mi.monitor.right - mi.monitor.left).ToString();
+                        di.ScreenHeight = (mi.monitor.bottom - mi.monitor.top).ToString();
+                        di.MonitorArea = mi.monitor;
+                        di.WorkArea = mi.work;
+                        di.Availability = mi.flags.ToString();
+                        col.Add(di);
+                    }
+                    return true;
+                }, IntPtr.Zero);
+            return col;
+        }
+
+
 
 
 
         static void Main(string[] args)
         {
             Title = "C_sharp_DZ_12";
-            //Assembly a = Assembly.Load("C:/Windows/System32/wbem/cimwin32.dll");
-            try
-            {
-
-                WriteLine(DiagonalFromDll.ScreenHeight());
-
-
-            }
-            catch (Exception ex)
-            {
-                WriteLine(ex.Message);
-            }
-
+            
+            
 
 
             
