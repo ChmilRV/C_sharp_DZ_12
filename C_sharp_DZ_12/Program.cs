@@ -10,70 +10,88 @@ using System.ComponentModel;
 /*Разработать приложение, позволяющее определить размер диагонали монитора текущего компьютера в дюймах.*/
 namespace C_sharp_DZ_12
 {
-
-    public class MONITOR_INFO_2
+    public class DllImportDiag
     {
-        [DllImport("winspool.drv", CharSet = CharSet.Auto, SetLastError = true)]
-        public static extern bool EnumMonitors(string pName, uint level, IntPtr pMonitors, uint cbBuf, ref uint pcbNeeded, ref uint pcReturned);
-        public const int ERROR_INSUFFICIENT_BUFFER = 122;
-        public static List<MONITOR_INFO_2> GetMonitors()
-        {
-            List<MONITOR_INFO_2> ports = new List<MONITOR_INFO_2>();
-            uint pcbNeeded = 0;
-            uint pcReturned = 0;
+        [DllImport("user32.dll")]
+        static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr lprcClip, EnumMonitorsDelegate lpfnEnum, IntPtr dwData);
+    }
 
-            if (EnumMonitors(null, 2, IntPtr.Zero, 0, ref pcbNeeded, ref pcReturned))
-            {
-                //succeeds, but must not, because buffer is zero (too small)!
-                throw new Exception("EnumMonitors should fail!");
-            }
+    [StructLayout(LayoutKind.Sequential)]
+    public struct Rect
+    {
+        public int left;
+        public int top;
+        public int right;
+        public int bottom;
+    }
 
-            int lastWin32Error = Marshal.GetLastWin32Error();
-            if (lastWin32Error == ERROR_INSUFFICIENT_BUFFER)
-            {
+    delegate bool EnumMonitorsDelegate(IntPtr hMonitor, IntPtr hdcMonitor, ref Rect lprcMonitor, IntPtr dwData);
 
-                IntPtr pMonitors = Marshal.AllocHGlobal((int)pcbNeeded);
-                if (EnumMonitors(null, 2, pMonitors, pcbNeeded, ref pcbNeeded, ref pcReturned))
-                {
-                    IntPtr currentMonitor = pMonitors;
+    public class DisplayInfo
+    {
+        public string Availability { get; set; }
+        public string ScreenHeight { get; set; }
+        public string ScreenWidth { get; set; }
+        public Rect MonitorArea { get; set; }
+        public Rect WorkArea { get; set; }
+    }
 
-                    for (int i = 0; i < pcReturned; i++)
-                    {
-                        ports.Add((MONITOR_INFO_2)Marshal.PtrToStructure(currentMonitor, typeof(MONITOR_INFO_2)));
-                        currentMonitor = (IntPtr)(currentMonitor.ToInt32() + Marshal.SizeOf(typeof(MONITOR_INFO_2)));
-                    }
-                    Marshal.FreeHGlobal(pMonitors);
+    public class DisplayInfoCollection : List<DisplayInfo>
+    {
 
-                    return ports;
-                }
-            }
-            throw new Win32Exception(Marshal.GetLastWin32Error());
-
-        }
 
 
     }
 
-    //http://pinvoke.net/default.aspx/user32/EnumDisplayMonitors.html
-
-
     
+
 
 
 
     class Program
     {
 
-        
+        public DisplayInfoCollection GetDisplays()
+        {
+            DisplayInfoCollection col = new DisplayInfoCollection();
+
+            EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero,
+                delegate (IntPtr hMonitor, IntPtr hdcMonitor, ref Rect lprcMonitor, IntPtr dwData)
+                {
+                    MonitorInfo mi = new MonitorInfo();
+                    mi.size = (uint)Marshal.SizeOf(mi);
+                    bool success = GetMonitorInfo(hMonitor, ref mi);
+                    if (success)
+                    {
+                        DisplayInfo di = new DisplayInfo();
+                        di.ScreenWidth = (mi.monitor.right - mi.monitor.left).ToString();
+                        di.ScreenHeight = (mi.monitor.bottom - mi.monitor.top).ToString();
+                        di.MonitorArea = mi.monitor;
+                        di.WorkArea = mi.work;
+                        di.Availability = mi.flags.ToString();
+                        col.Add(di);
+                    }
+                    return true;
+                }, IntPtr.Zero);
+            return col;
+        }
 
 
 
+
+        //"c:/windows/system32/user32.dll"
         static void Main(string[] args)
         {
             Title = "C_sharp_DZ_12";
+
+
+
+
+
             try
             {
-                
+               
+
 
 
 
@@ -82,12 +100,6 @@ namespace C_sharp_DZ_12
             {
                 WriteLine(ex.Message);
             }
-
-
-
-
-
-
 
             ReadKey();
         }
