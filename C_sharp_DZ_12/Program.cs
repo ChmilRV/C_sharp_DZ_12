@@ -18,7 +18,6 @@ namespace C_sharp_DZ_12
         [DllImport("user32.dll")]
         public static extern bool GetMonitorInfo(IntPtr hmon, ref MonitorInfo mi);
     }
-    
 
     [StructLayout(LayoutKind.Sequential)]
     public struct Rect
@@ -40,56 +39,79 @@ namespace C_sharp_DZ_12
 
     public class DisplayInfo
     {
-        
         public string ScreenHeight { get; set; }
         public string ScreenWidth { get; set; }
-        
     }
     public class DisplayInfoCollection : List<DisplayInfo>
     {
-    }
-    class Program
-    {
-
         public DisplayInfoCollection GetDisplays()
         {
             DisplayInfoCollection col = new DisplayInfoCollection();
-
             DllImportDiag.EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero,
-
                 delegate (IntPtr hMonitor, IntPtr hdcMonitor, ref Rect lprcMonitor, IntPtr dwData)
                 {
                     MonitorInfo mi = new MonitorInfo();
-                    mi.size = (uint)Marshal.SizeOf(mi);
+                    //mi.size = (uint)Marshal.SizeOf(mi);
                     bool success = DllImportDiag.GetMonitorInfo(hMonitor, ref mi);
                     if (success)
                     {
                         DisplayInfo di = new DisplayInfo();
                         di.ScreenWidth = (mi.monitor.right - mi.monitor.left).ToString();
                         di.ScreenHeight = (mi.monitor.bottom - mi.monitor.top).ToString();
+                        WriteLine(di.ScreenWidth);
+                        WriteLine(di.ScreenHeight);
                         col.Add(di);
                     }
                     return true;
                 },
-
                 IntPtr.Zero);
             return col;
         }
+
+
+    }
+
+
+
+    class Program
+    {
+
+        //public DisplayInfoCollection GetDisplays()
+        //{
+        //    DisplayInfoCollection col = new DisplayInfoCollection();
+        //    DllImportDiag.EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero,
+        //        delegate (IntPtr hMonitor, IntPtr hdcMonitor, ref Rect lprcMonitor, IntPtr dwData)
+        //        {
+        //            MonitorInfo mi = new MonitorInfo();
+        //            //mi.size = (uint)Marshal.SizeOf(mi);
+        //            bool success = DllImportDiag.GetMonitorInfo(hMonitor, ref mi);
+        //            if (success)
+        //            {
+        //                DisplayInfo di = new DisplayInfo();
+        //                di.ScreenWidth = (mi.monitor.right - mi.monitor.left).ToString();
+        //                di.ScreenHeight = (mi.monitor.bottom - mi.monitor.top).ToString();
+        //                WriteLine(di.ScreenWidth);
+        //                WriteLine(di.ScreenHeight);
+        //                col.Add(di);
+        //            }
+        //            return true;
+        //        },
+        //        IntPtr.Zero);
+        //    return col;
+        //}
+
+
         static void Main(string[] args)
         {
             Title = "C_sharp_DZ_12";
-            try
-            {
-               
+            DisplayInfoCollection col = new DisplayInfoCollection();
+            
+            //  Запутался с реализацией...
+
+            
+            
 
 
-
-
-            }
-            catch (Exception ex)
-            {
-                WriteLine(ex.Message);
-            }
             ReadKey();
         }
     }
