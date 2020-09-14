@@ -13,9 +13,8 @@ namespace C_sharp_DZ_12
     public class DllImportDiag
     {
         [DllImport("user32.dll")]
-        static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr lprcClip, EnumMonitorsDelegate lpfnEnum, IntPtr dwData);
+        public static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr lprcClip, EnumMonitorsDelegate lpfnEnum, IntPtr dwData);
     }
-
     [StructLayout(LayoutKind.Sequential)]
     public struct Rect
     {
@@ -25,7 +24,7 @@ namespace C_sharp_DZ_12
         public int bottom;
     }
 
-    delegate bool EnumMonitorsDelegate(IntPtr hMonitor, IntPtr hdcMonitor, ref Rect lprcMonitor, IntPtr dwData);
+    public delegate bool EnumMonitorsDelegate(IntPtr hMonitor, IntPtr hdcMonitor, ref Rect lprcMonitor, IntPtr dwData);
 
     public class DisplayInfo
     {
@@ -36,12 +35,10 @@ namespace C_sharp_DZ_12
         public Rect WorkArea { get; set; }
     }
 
-    public class DisplayInfoCollection : List<DisplayInfo>
-    {
 
 
 
-    }
+    
 
     
 
@@ -51,30 +48,7 @@ namespace C_sharp_DZ_12
     class Program
     {
 
-        public DisplayInfoCollection GetDisplays()
-        {
-            DisplayInfoCollection col = new DisplayInfoCollection();
-
-            EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero,
-                delegate (IntPtr hMonitor, IntPtr hdcMonitor, ref Rect lprcMonitor, IntPtr dwData)
-                {
-                    MonitorInfo mi = new MonitorInfo();
-                    mi.size = (uint)Marshal.SizeOf(mi);
-                    bool success = GetMonitorInfo(hMonitor, ref mi);
-                    if (success)
-                    {
-                        DisplayInfo di = new DisplayInfo();
-                        di.ScreenWidth = (mi.monitor.right - mi.monitor.left).ToString();
-                        di.ScreenHeight = (mi.monitor.bottom - mi.monitor.top).ToString();
-                        di.MonitorArea = mi.monitor;
-                        di.WorkArea = mi.work;
-                        di.Availability = mi.flags.ToString();
-                        col.Add(di);
-                    }
-                    return true;
-                }, IntPtr.Zero);
-            return col;
-        }
+        
 
 
 
