@@ -2,6 +2,7 @@
 using static System.Console;
 using System.Runtime.InteropServices;
 using System.Drawing;
+using System.Net;
 /*Разработать приложение, позволяющее определить размер диагонали монитора текущего компьютера в дюймах.*/
 namespace C_sharp_DZ_12
 {
@@ -20,6 +21,7 @@ namespace C_sharp_DZ_12
                 IntPtr hdc = g.GetHdc();
                 WriteLine($"Диагональ экрана: {Math.Round(Math.Sqrt(Math.Pow(DllImp.GetDeviceCaps(hdc, 4), 2) + Math.Pow(DllImp.GetDeviceCaps(hdc, 6), 2)) / 25.4, 1)} дюймов.");
                 WriteLine($"Разрешение экрана {DllImp.GetDeviceCaps(hdc, 8)} х {DllImp.GetDeviceCaps(hdc, 10)}.");
+                WriteLine($"Физический размер экрана: {DllImp.GetDeviceCaps(hdc, 4)} x {DllImp.GetDeviceCaps(hdc, 6)} мм.");
                 WriteLine($"Частота вертикальной развертки {DllImp.GetDeviceCaps(hdc, 116)} Hz.");
                 g.ReleaseHdc();
             }
